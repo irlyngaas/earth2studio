@@ -54,6 +54,9 @@ class NCAR_ERA5Lexicon(metaclass=LexiconType):
             "t2m": (167, "2t", "e5.oper.an.sfc", "ll025sc"),
             "u100m": (246, "100u", "e5.oper.an.sfc", "ll025sc"),
             "v100m": (247, "100v", "e5.oper.an.sfc", "ll025sc"),
+            "lsp": (142, "lsp", "e5.oper.fc.sfc.accumu", "ll025sc"), 
+            "cp": (143, "cp", "e5.oper.fc.sfc.accumu", "ll025sc"), 
+            "swvl1": (39, "swvl1", "e5.oper.an.sfc", "ll025sc"),
         }
         pressure_levels = [
             1,
@@ -94,7 +97,7 @@ class NCAR_ERA5Lexicon(metaclass=LexiconType):
             975,
             1000,
         ]
-        pattern = "{product}::{n}_{eid}_{ename}::{grid}::{level}"
+        pattern = "{product}::{n}_{eid:03}_{ename}::{grid}::{level}"
 
         vocab = {}
         for var, (eid, ename, product, grid) in params.items():
