@@ -73,11 +73,7 @@ def run(
 
     logger.info("Inference Starting")
     x, coords = orbit(x, coords)
-
-
-
-
-    check_data(time, data, orbit, device)
-
+    io.write(x, coords)
+    logger.success("Inference complete")
 
     return io
