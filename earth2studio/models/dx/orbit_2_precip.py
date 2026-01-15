@@ -34,6 +34,7 @@ from earth2studio.utils.type import CoordSystem
 import yaml
 from climate_learn.models.hub import Res_Slim_ViT
 from climate_learn.models.hub.components.pos_embed import interpolate_pos_embed
+from climate_learn.utils.fused_attn import FusedAttn
 
 VARIABLES = [
     #"t2",
@@ -272,7 +273,8 @@ class OrbitGlobalPrecip9_5M(torch.nn.Module, AutoModelMixin):
         #data_par_size = fsdp_size * simple_ddp_size
 
         #in_channels, in_height, in_width = in_shape[1:]
-        in_channels = len(VARIABLES + STATIC_VARIABLES)
+        #in_channels = len(VARIABLES + STATIC_VARIABLES)
+        in_channels = len(ORBIT_VARIABLE_MAPPING + STATIC_VARIABLES)
         in_height = IN_HEIGHT
         in_width = IN_WIDTH
         if model_type in ["global"]:
@@ -301,7 +303,7 @@ class OrbitGlobalPrecip9_5M(torch.nn.Module, AutoModelMixin):
             drop_rate=drop_rate,
             #tensor_par_size = tensor_par_size,
             #tensor_par_group = tensor_par_group,
-            FusedAttn_option = "DEFAULT", 
+            FusedAttn_option = FusedAttn.DEFAULT, 
         )
 
         #NEED THIS?
@@ -370,11 +372,11 @@ class OrbitGlobalPrecip9_5M(torch.nn.Module, AutoModelMixin):
     def clip_replace_constant(y, out_variables):
 
         prcp_index = out_variables.index("total_precipitation_24hr")
-        for i in range(yhat.shape[1]):
+        for i in range(y.shape[1]):
             if i == prcp_index:
-                torch.clamp_(yhat[:, prcp_index, :, :], min=0.0)
+                torch.clamp_(y[:, prcp_index, :, :], min=0.0)
 
-        return yhat
+        return y
 
 
     @torch.inference_mode()
