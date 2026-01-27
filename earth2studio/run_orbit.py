@@ -9,6 +9,11 @@ from earth2studio.utils.time import to_time_array
 from earth2studio.data import DataSource, prep_data_array
 from earth2studio.io import IOBackend
 from earth2studio.models.dx import OrbitGlobalPrecip9_5M
+from collections import OrderedDict
+from earth2studio.utils.coords import map_coords, split_coords
+
+import xarray as xr
+from matplotlib import pyplot as plt
 
 def run(
     time: list[str] | list[datetime] | list[np.datetime64],
@@ -69,11 +74,30 @@ def run(
         
 
     output_coords = orbit.output_coords(orbit.input_coords())
-    io.add_array(output_coords, output_coords["variable"], overwrite=True)
+    total_coords = OrderedDict(
+        {
+            "time": time,
+            #"variable": output_coords["variable"],
+            "lat": output_coords["lat"],
+            "lon": output_coords["lon"],
+        }
+    )
+    #io.add_array(output_coords, output_coords["variable"], overwrite=True)
+    io.add_array(total_coords, output_coords["variable"], overwrite=True)
 
     logger.info("Inference Starting")
     x, coords = orbit(x, coords)
-    io.write(x, coords)
+    #io.write(x, coords, "total_precipitation_24hr")
+    #io.write(x, coords, output_coords["variable"])
+    io.write(*split_coords(x, coords))
     logger.success("Inference complete")
+
+    #PLOT_OUTPUT
+    data = xr.open_zarr("outputs/aifs_forecast.zarr")
+    #data = xr.open_zarr(io.file_name)
+    plt.imshow(data['total_precipitation_24hr'][0])
+    #plt.imshow(data[output_coords["variable"]][0])
+    plt.colorbar()
+    plt.savefig("OUTPUT.png")
 
     return io
